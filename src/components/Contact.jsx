@@ -208,7 +208,7 @@ export default function Contact() {
     { icon: 'ti-brand-linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/rommel-glenn-austria-2b88ab423' },
     { icon: 'ti-brand-github', label: 'GitHub', href: 'https://github.com/Azazel9-4' },
     { icon: 'ti-brand-instagram', label: 'Instagram', href: 'https://www.instagram.com/azaashirooo/' },
-    { icon: 'ti-file-text', label: 'Resume', href: '/resume.pdf' },
+    { icon: 'ti-file-text', label: 'Resume', href: '/Resume-Glenn.pdf' },
   ]
 
   return (
