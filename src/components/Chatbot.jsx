@@ -161,20 +161,26 @@ export default function Chatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: trimmed,
-          history: messages.map(m => ({ role: m.role, text: m.text })),
+          history: messages.map(m => ({ 
+            role: m.role === 'bot' ? 'model' : 'user', 
+            text: m.text 
+          })),
         }),
       })
-      if (!res.ok) throw new Error('Bad response')
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.detail || `Server returned status ${res.status}`)
+      }
+
       const data = await res.json()
       setMessages(m => [...m, { role: 'bot', text: data.reply }])
     } catch (err) {
       setError(true)
-  // This will show the real error in the chat bubble
-      setMessages(m => [...m, { 
-      role: 'bot', 
-      text: "Error: " + err.message 
-     }])
-}
+      setMessages(m => [...m, {
+        role: 'bot',
+        text: `Error: ${err.message}`,
+      }])
     } finally {
       setLoading(false)
     }
