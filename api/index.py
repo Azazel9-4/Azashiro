@@ -1,8 +1,9 @@
 import os
-import google.generativeai as genai
+import traceback
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from google import genai
 
 app = FastAPI()
 
@@ -15,8 +16,6 @@ app.add_middleware(
 )
 
 api_key = os.getenv("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
 
 class ChatRequest(BaseModel):
     message: str
@@ -26,11 +25,15 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 async def chat(req: ChatRequest):
     if not api_key:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable missing.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable missing on Vercel.")
     
     try:
-        model = genai.GenerativeModel("gemini-3.6-flash")
-        response = model.generate_content(req.message)
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=req.message
+        )
         return {"reply": response.text}
     except Exception as e:
+        print("Backend Error Details:", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
