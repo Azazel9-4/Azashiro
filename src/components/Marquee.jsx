@@ -1,6 +1,8 @@
 import { marqueeItems } from '../data/portfolio'
+import useMediaQuery from '../hooks/useMediaQuery'
 
-const doubled = [...marqueeItems, ...marqueeItems]
+// Multiply 4x so content easily covers ultra-wide screen widths
+const quadrupled = [...marqueeItems, ...marqueeItems, ...marqueeItems, ...marqueeItems]
 
 const s = {
   wrap: {
@@ -10,18 +12,22 @@ const s = {
     whiteSpace: 'nowrap',
     position: 'relative',
     zIndex: 1,
+    display: 'flex',
+    width: '100%',
   },
-  track: {
+  track: (duration) => ({
     display: 'inline-flex',
-    animation: 'marquee 22s linear infinite',
-  },
-  item: {
-    fontSize: '11px',
-    letterSpacing: '3px',
+    alignItems: 'center',
+    flexShrink: 0,
+    animation: `marquee ${duration}s linear infinite`,
+  }),
+  item: (isMobile) => ({
+    fontSize: isMobile ? '10px' : '11px',
+    letterSpacing: isMobile ? '2px' : '3px',
     textTransform: 'uppercase',
     color: 'var(--muted)',
-    padding: '0 32px',
-  },
+    padding: isMobile ? '0 20px' : '0 32px',
+  }),
   sep: {
     color: 'var(--amber)',
     fontSize: '14px',
@@ -30,12 +36,26 @@ const s = {
 }
 
 export default function Marquee() {
+  const isMobile = useMediaQuery('(max-width: 640px)')
+  const duration = isMobile ? 20 : 30
+
   return (
     <div style={s.wrap}>
-      <div style={s.track}>
-        {doubled.map((item, i) => (
-          <span key={i}>
-            <span style={s.item}>{item}</span>
+      {/* Primary Track */}
+      <div style={s.track(duration)}>
+        {quadrupled.map((item, i) => (
+          <span key={`a-${i}`}>
+            <span style={s.item(isMobile)}>{item}</span>
+            <span style={s.sep}>·</span>
+          </span>
+        ))}
+      </div>
+
+      {/* Duplicate Track for Seamless Infinite Loop */}
+      <div style={s.track(duration)} aria-hidden="true">
+        {quadrupled.map((item, i) => (
+          <span key={`b-${i}`}>
+            <span style={s.item(isMobile)}>{item}</span>
             <span style={s.sep}>·</span>
           </span>
         ))}

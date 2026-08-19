@@ -1,15 +1,43 @@
 import Reveal from './Reveal'
+import useMediaQuery from '../hooks/useMediaQuery'
 
 const s = {
-  section: {
-    padding: '110px 60px 100px',
+  section: (isMobile) => ({
+    padding: isMobile ? '90px 24px 60px' : '110px 60px 100px',
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '40px',
-    alignItems: 'end',
+    gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)',
+    gap: isMobile ? '36px' : '40px',
+    alignItems: isMobile ? 'start' : 'end',
     borderBottom: '1px solid var(--border)',
     position: 'relative',
+    overflow: 'hidden',
     zIndex: 1,
+  }),
+  orb1: {
+    position: 'absolute',
+    top: '-80px',
+    left: '-100px',
+    width: '360px',
+    height: '360px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(200,137,42,0.16), transparent 70%)',
+    filter: 'blur(10px)',
+    animation: 'floatOrb 8s ease-in-out infinite',
+    pointerEvents: 'none',
+    zIndex: -1,
+  },
+  orb2: {
+    position: 'absolute',
+    bottom: '-100px',
+    right: '-80px',
+    width: '300px',
+    height: '300px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(200,137,42,0.1), transparent 70%)',
+    filter: 'blur(10px)',
+    animation: 'floatOrb 9s ease-in-out infinite 1s',
+    pointerEvents: 'none',
+    zIndex: -1,
   },
   available: {
     display: 'inline-flex',
@@ -35,13 +63,17 @@ const s = {
   },
   h1: {
     fontFamily: 'var(--serif)',
-    fontSize: 'clamp(52px, 6vw, 80px)',
+    fontSize: 'clamp(40px, 9vw, 80px)',
     fontWeight: 400,
     lineHeight: 1.0,
     letterSpacing: '-1px',
     marginBottom: '12px',
   },
-  accent: { color: 'var(--amber)', fontStyle: 'italic' },
+  accent: {
+    color: 'var(--amber)',
+    fontStyle: 'italic',
+    textShadow: '0 0 40px rgba(200,137,42,0.45)',
+  },
   sub: {
     fontSize: '15px',
     color: 'var(--muted)',
@@ -49,14 +81,10 @@ const s = {
     lineHeight: 1.85,
     marginTop: '20px',
   },
-  right: { textAlign: 'right', paddingBottom: '8px' },
-  name: {
-    fontFamily: 'var(--serif)',
-    fontSize: '13px',
-    color: 'var(--muted)',
-    letterSpacing: '1px',
-    marginBottom: '8px',
-  },
+  right: (isMobile) => ({
+    textAlign: isMobile ? 'left' : 'right',
+    paddingBottom: isMobile ? 0 : '8px',
+  }),
   role: {
     fontSize: '11px',
     letterSpacing: '3px',
@@ -64,7 +92,12 @@ const s = {
     color: 'var(--amber)',
     marginBottom: '32px',
   },
-  btns: { display: 'flex', gap: '10px', justifyContent: 'flex-end' },
+  btns: (isMobile) => ({
+    display: 'flex',
+    gap: '10px',
+    justifyContent: isMobile ? 'flex-start' : 'flex-end',
+    flexWrap: 'wrap',
+  }),
   btnPrimary: {
     padding: '13px 28px',
     background: 'var(--amber)',
@@ -73,7 +106,7 @@ const s = {
     fontSize: '13px',
     fontWeight: 500,
     letterSpacing: '0.5px',
-    transition: 'opacity 0.2s',
+    transition: 'all 0.2s',
   },
   btnGhost: {
     padding: '13px 28px',
@@ -86,8 +119,12 @@ const s = {
 }
 
 export default function Hero() {
+  const isMobile = useMediaQuery('(max-width: 640px)')
+
   return (
-    <section style={s.section}>
+    <section style={s.section(isMobile)} className="hero">
+      <div style={s.orb1} />
+      <div style={s.orb2} />
       <Reveal direction="up" delay={0}>
         <div>
           <div style={s.available}>
@@ -104,15 +141,20 @@ export default function Hero() {
         </div>
       </Reveal>
       <Reveal direction="up" delay={150}>
-        <div style={s.right}>
-          {/*<p style={s.name}>Azashiro</p>*/}
+        <div style={s.right(isMobile)} className="hero-right">
           <p style={s.role}>Python · PHP · Flutter · React</p>
-          <div style={s.btns}>
+          <div style={s.btns(isMobile)} className="hero-btns">
             <a
               href="#work"
               style={s.btnPrimary}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'scale(1.04)'
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(200,137,42,0.35)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'scale(1)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
             >
               View Work
             </a>
@@ -120,7 +162,7 @@ export default function Hero() {
               href="#contact"
               style={s.btnGhost}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'
+                e.currentTarget.style.borderColor = 'var(--amber-border)'
                 e.currentTarget.style.color = 'var(--text)'
               }}
               onMouseLeave={e => {

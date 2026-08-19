@@ -1,0 +1,233 @@
+{
+  "communities": {
+    "0": [
+      "src_app",
+      "src_app_app",
+      "src_components_contact",
+      "src_components_contact_contact",
+      "src_components_contact_contactlinks",
+      "src_components_contact_s",
+      "src_components_footer",
+      "src_components_footer_footer",
+      "src_components_footer_s",
+      "src_components_hero",
+      "src_components_hero_hero",
+      "src_components_hero_s",
+      "src_components_navbar",
+      "src_components_navbar_navbar",
+      "src_components_navbar_s",
+      "src_main"
+    ],
+    "1": [
+      "backend_knowledge",
+      "backend_main",
+      "backend_main_ask_ai",
+      "backend_main_chat",
+      "backend_main_chatmessage",
+      "backend_main_chatrequest",
+      "backend_main_chatresponse",
+      "backend_main_find_best_match",
+      "backend_main_health",
+      "backend_main_rationale_1",
+      "backend_main_rationale_83",
+      "basemodel",
+      "get",
+      "post"
+    ],
+    "2": [
+      "src_components_about",
+      "src_components_about_about",
+      "src_components_about_s",
+      "src_components_projects",
+      "src_components_projects_projects",
+      "src_components_projects_s",
+      "src_components_reveal",
+      "src_components_reveal_reveal",
+      "src_data_portfolio",
+      "src_data_portfolio_projects",
+      "src_data_portfolio_skills",
+      "src_data_portfolio_tools",
+      "src_hooks_usescrollreveal",
+      "src_hooks_usescrollreveal_usescrollreveal"
+    ],
+    "3": [
+      "package",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_preview",
+      "package_type",
+      "package_version"
+    ],
+    "4": [
+      "package_dependencies",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_tabler_icons_webfont",
+      "react",
+      "react_dom",
+      "tabler_icons_webfont"
+    ],
+    "5": [
+      "autoprefixer",
+      "eslint",
+      "package_devdependencies",
+      "package_devdependencies_autoprefixer",
+      "package_devdependencies_eslint"
+    ],
+    "6": [
+      "src_components_chatbot",
+      "src_components_chatbot_chatbot",
+      "src_components_chatbot_chatbot_send",
+      "src_components_chatbot_s",
+      "src_components_chatbot_suggestedquestions"
+    ],
+    "7": [
+      "src_components_marquee",
+      "src_components_marquee_doubled",
+      "src_components_marquee_marquee",
+      "src_components_marquee_s",
+      "src_data_portfolio_marqueeitems"
+    ],
+    "8": [
+      "eslint_js",
+      "package_devdependencies_eslint_js"
+    ],
+    "9": [
+      "eslint_plugin_react_hooks",
+      "package_devdependencies_eslint_plugin_react_hooks"
+    ],
+    "10": [
+      "eslint_plugin_react_refresh",
+      "package_devdependencies_eslint_plugin_react_refresh"
+    ],
+    "11": [
+      "globals",
+      "package_devdependencies_globals"
+    ],
+    "12": [
+      "package_devdependencies_postcss",
+      "postcss"
+    ],
+    "13": [
+      "package_devdependencies_tailwindcss",
+      "tailwindcss"
+    ],
+    "14": [
+      "package_devdependencies_types_react",
+      "types_react"
+    ],
+    "15": [
+      "package_devdependencies_types_react_dom",
+      "types_react_dom"
+    ],
+    "16": [
+      "package_devdependencies_vite",
+      "vite"
+    ],
+    "17": [
+      "package_devdependencies_vitejs_plugin_react",
+      "vitejs_plugin_react"
+    ],
+    "18": [
+      "eslint_config"
+    ],
+    "19": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.16666666666666666,
+    "1": 0.2087912087912088,
+    "2": 0.23076923076923078,
+    "3": 0.2,
+    "4": 0.2857142857142857,
+    "5": 0.4,
+    "6": 0.4,
+    "7": 0.4,
+    "8": 1.0,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0
+  },
+  "gods": [
+    {
+      "id": "backend_main_chat",
+      "label": "chat()",
+      "degree": 6
+    },
+    {
+      "id": "src_components_reveal_reveal",
+      "label": "Reveal()",
+      "degree": 6
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 5
+    },
+    {
+      "id": "backend_main_ask_ai",
+      "label": "ask_ai()",
+      "degree": 3
+    },
+    {
+      "id": "backend_main_chatrequest",
+      "label": "ChatRequest",
+      "degree": 3
+    },
+    {
+      "id": "backend_main_chatresponse",
+      "label": "ChatResponse",
+      "degree": 3
+    },
+    {
+      "id": "src_components_chatbot_chatbot",
+      "label": "Chatbot()",
+      "degree": 3
+    },
+    {
+      "id": "src_hooks_usescrollreveal_usescrollreveal",
+      "label": "useScrollReveal()",
+      "degree": 3
+    },
+    {
+      "id": "backend_main_find_best_match",
+      "label": "find_best_match()",
+      "degree": 2
+    },
+    {
+      "id": "backend_main_chatmessage",
+      "label": "ChatMessage",
+      "degree": 2
+    }
+  ],
+  "surprises": [
+    {
+      "source": "Reveal()",
+      "target": "useScrollReveal()",
+      "source_files": [
+        "src/components/Reveal.jsx",
+        "src/hooks/useScrollReveal.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}
