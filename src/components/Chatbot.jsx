@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import useMediaQuery from '../hooks/useMediaQuery'
 
-const API_URL = import.meta.env.VITE_CHAT_API_URL || 'http://localhost:8000/api/chat'
+const API_URL = import.meta.env.VITE_CHAT_API_URL || '/api/chat'
 
 const s = {
   fab: (isMobile) => ({
