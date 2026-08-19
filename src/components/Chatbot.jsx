@@ -167,12 +167,14 @@ export default function Chatbot() {
       if (!res.ok) throw new Error('Bad response')
       const data = await res.json()
       setMessages(m => [...m, { role: 'bot', text: data.reply }])
-    } catch {
+    } catch (err) {
       setError(true)
-      setMessages(m => [...m, {
-        role: 'bot',
-        text: "I couldn't reach the backend. Make sure the Python API is running (see /backend/README.md).",
-      }])
+  // This will show the real error in the chat bubble
+      setMessages(m => [...m, { 
+      role: 'bot', 
+      text: "Error: " + err.message 
+     }])
+}
     } finally {
       setLoading(false)
     }
