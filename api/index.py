@@ -29,7 +29,7 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable missing.")
     
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
         response = model.generate_content(req.message)
         return {"reply": response.text}
     except Exception as e:
