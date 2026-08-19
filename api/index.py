@@ -30,7 +30,7 @@ async def chat(req: ChatRequest):
     try:
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
+            model="gemini-1.5-flash",
             contents=req.message
         )
         return {"reply": response.text}
