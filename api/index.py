@@ -54,7 +54,7 @@ async def chat(req: ChatRequest):
         )
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents=f"{system_instruction}\n\nUser Question: {req.message}"
         )
         return {"reply": response.text}
