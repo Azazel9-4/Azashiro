@@ -201,7 +201,7 @@ export default function Contact() {
   const contactLinks = [
     {
       icon: 'ti-mail',
-      label: selectedTag ? `Email about ${selectedTag}` : 'austriarommelglenn09@gmail.com',
+      label: selectedTag ? `Email about ${selectedTag}` : 'Gmail',
       href: `https://mail.google.com/mail/?view=cm&to=austriarommelglenn09@gmail.com${selectedTag ? `&su=Inquiry regarding ${selectedTag}` : ''}`,
       isEmail: true,
     },
