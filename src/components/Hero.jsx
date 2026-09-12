@@ -20,7 +20,7 @@ const s = {
     width: '360px',
     height: '360px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(200,137,42,0.16), transparent 70%)',
+    background: 'radial-gradient(circle, rgba(174, 42, 200, 0.35), transparent 70%)',
     filter: 'blur(10px)',
     animation: 'floatOrb 8s ease-in-out infinite',
     pointerEvents: 'none',
@@ -33,7 +33,7 @@ const s = {
     width: '300px',
     height: '300px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(200,137,42,0.1), transparent 70%)',
+    background: 'radial-gradient(circle, rgba(174, 42, 200, 0.35), transparent 70%)',
     filter: 'blur(10px)',
     animation: 'floatOrb 9s ease-in-out infinite 1s',
     pointerEvents: 'none',
@@ -72,7 +72,7 @@ const s = {
   accent: {
     color: 'var(--amber)',
     fontStyle: 'italic',
-    textShadow: '0 0 40px rgba(200,137,42,0.45)',
+    textShadow: '0 0 40px rgba(174, 42, 200, 0.35)',
   },
   sub: {
     fontSize: '15px',
@@ -127,10 +127,6 @@ export default function Hero() {
       <div style={s.orb2} />
       <Reveal direction="up" delay={0}>
         <div>
-          <div style={s.available}>
-            <span style={s.dot} />
-            Available for work
-          </div>
           <h1 style={s.h1}>
             Building apps<br />
             that <em style={s.accent}>matter.</em>
@@ -149,7 +145,7 @@ export default function Hero() {
               style={s.btnPrimary}
               onMouseEnter={e => {
                 e.currentTarget.style.transform = 'scale(1.04)'
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(200,137,42,0.35)'
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(174, 42, 200, 0.35)'
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = 'scale(1)'

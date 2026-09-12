@@ -6,13 +6,13 @@ import Projects from './components/Projects'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import Chatbot from './components/Chatbot'
-import BackgroundParticles from './components/BackgroundParticles'
+import GlassShards from './components/GlassShards'
 
 export default function App() {
   return (
     <div className="app-container">
       {/* Canvas renders fixed in the background behind all UI elements */}
-      <BackgroundParticles />
+      <GlassShards />
 
       {/* Main Site Structure */}
       <Navbar />

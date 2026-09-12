@@ -27,9 +27,6 @@ export default function Footer() {
 
   return (
     <footer style={s.footer(isMobile)}>
-      <p style={s.left}>
-        <span style={s.dot} /> 2026 Azashiro
-      </p>
       <p style={s.right}>Built with React + Vite</p>
     </footer>
   )

@@ -47,7 +47,7 @@ const s = {
     borderRadius: '12px',
     background: 'var(--surface)',
     border: `1px solid ${hovered ? 'var(--amber-border)' : 'var(--border)'}`,
-    boxShadow: hovered ? '0 12px 40px rgba(200,137,42,0.12)' : 'none',
+    boxShadow: hovered ? '0 12px 40px rgba(174, 42, 200, 0.35)' : 'none',
     transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
     transition: 'all 0.3s ease',
     cursor: 'default',
@@ -59,7 +59,7 @@ const s = {
   topBar: (hovered) => ({
     height: hovered ? '4px' : '3px',
     width: '100%',
-    background: 'linear-gradient(90deg, var(--amber), rgba(200,137,42,0.3))',
+    background: 'linear-gradient(90deg, var(--amber), rgba(174, 42, 200, 0.35))',
     transition: 'height 0.3s',
   }),
   cardBody: { padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 },

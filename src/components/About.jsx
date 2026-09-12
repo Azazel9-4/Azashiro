@@ -60,8 +60,7 @@ const s = {
     marginBottom: '8px',
   },
   highlight: { color: 'var(--text)' },
-  
-  /* RESPONSIVE DIVIDER */
+
   divider: (isMobile) => ({
     width: isMobile ? '80px' : '140px',
     height: '1px',
@@ -69,7 +68,6 @@ const s = {
     margin: isMobile ? '20px 0 28px 0' : '28px 0 32px 0',
   }),
 
-  /* OPTION 3 STYLES */
   cardGroup: {
     display: 'flex',
     flexDirection: 'column',
@@ -113,7 +111,7 @@ const s = {
     position: 'relative',
     transition: 'box-shadow 0.3s, border-color 0.3s',
   }),
-  img: {
+    img: {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
@@ -121,6 +119,7 @@ const s = {
     filter: 'grayscale(20%)',
   },
 }
+
 
 export default function About() {
   const isMobile = useMediaQuery('(max-width: 640px)')
@@ -134,22 +133,7 @@ export default function About() {
           <div style={s.index}>01</div>
         </div>
       </Reveal>
-      <Reveal delay={50}>
-        <div
-          style={s.imgWrap(stacked)}
-          className="about-img"
-          onMouseEnter={e => {
-            e.currentTarget.style.boxShadow = '0 0 40px rgba(200,137,42,0.25)'
-            e.currentTarget.style.borderColor = 'var(--amber-border)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.boxShadow = 'none'
-            e.currentTarget.style.borderColor = 'var(--border)'
-          }}
-        >
-          <img src="/me.png" alt="Rommel Glenn Austria" style={s.img} />
-        </div>
-      </Reveal>
+
       <div>
         <Reveal delay={100}>
           <h2 style={s.h2(isMobile)}>Developer with a designer eye.</h2>
@@ -168,12 +152,10 @@ export default function About() {
             I care about writing clean, purposeful code — and I am looking to
             grow in an environment where I can keep doing that.
           </p>
-          
-          {/* RESPONSIVE DIVIDER CALL */}
+
           <div style={s.divider(isMobile)} />
         </Reveal>
 
-        {/* SKILLS CARDS */}
         <Reveal delay={300}>
           <div style={s.cardGroup}>
             {skillCategories.map((cat) => (
