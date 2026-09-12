@@ -34,7 +34,7 @@ const s = {
       overflow: 'hidden',
       border: '1px solid var(--amber-border)',
       flexShrink: 0,
-      marginLeft: '15px',
+      /*marginLeft=15,*/
     },
     logoImgInner: {
       width: '100%',
