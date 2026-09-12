@@ -130,7 +130,7 @@ const suggestedQuestions = [
 export default function Chatbot() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([
-    { role: 'bot', text: "Hey! I'm Azashiro's assistant. Ask me anything about Rommel's background, skills, or projects." },
+    { role: 'bot', text: "Hey! I'm Azashiro. Ask me anything about Glenn's background, skills, or projects." },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
