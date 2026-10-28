@@ -1,274 +1,465 @@
 import { useEffect, useRef } from 'react'
-import * as THREE from 'three'
 
-export default function GlassShards() {
-  const containerRef = useRef(null)
+// <SCENE_LOGIC>
+/**
+ * Reiatsu: crushing pressure + Bleach anime energy surge.
+ *
+ *  FACADE   Idle & Scrolling: depth parallax with vertical speed streaking.
+ *  PRESSURE Long press: towering Bleach Reiatsu strokes, screen darkening,
+ *           violent jitter, ground slashes, and motes pulled into the vortex.
+ *  RELEASE  Unleashes heavy spiritual shockwaves and camera shake.
+ */
+const TAU = Math.PI * 2
+const BG = '#06050a'
+const clamp01 = (v) => Math.max(0, Math.min(1, v))
+const smooth = (a, b, t) => { const k = clamp01((t - a) / (b - a)); return k * k * (3 - 2 * k) }
+const stageWeights = (s) => [clamp01(1 - s), clamp01(1 - Math.abs(s - 1)), clamp01(1 - Math.abs(s - 2)), clamp01(s - 2)]
+
+function mulberry32(a) {
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+const STAGE_BLOBS = [
+  [[0.08, 0.12, 0.5, 0.22], [0.95, 0.95, 0.45, 0.18], [0.5, 1.08, 0.75, 0.2]],
+  [[0.06, 0.22, 0.45, 0.18], [0.86, 0.58, 0.5, 0.18], [0.5, 1.1, 0.7, 0.14]],
+  [[0.15, 0.3, 0.5, 0.15], [0.85, 0.3, 0.5, 0.15], [0.5, 1.1, 0.7, 0.12]],
+  [[0.4, 0.5, 0.55, 0.12], [0.6, 0.5, 0.55, 0.12], [0.5, 1.1, 0.7, 0.1]],
+]
+const BLOB_COLORS = ['147,51,234', '109,40,217', '88,28,135']
+
+function buildWorld(W, H, count) {
+  const rnd = mulberry32(321)
+  const motes = []
+  for (let i = 0; i < count; i++) {
+    const hy = rnd() * H
+    motes.push({
+      x: rnd() * W, y: hy, hy, vx: 0, vy: 0, depth: 0.3 + rnd() * 0.7,
+      size: 0.8 + Math.pow(rnd(), 3) * 2.0, tw: 0.8 + rnd() * 1.8, ph: rnd() * TAU,
+    })
+  }
+  return {
+    motes, shocks: [], P: 0, ep: null, shake: 0,
+    hold: { down: false, p: 0, x: 0, y: 0, t0: 0 },
+    hintUntil: 14, interacted: false,
+  }
+}
+
+function pressDown(world, st, x, y) {
+  const h = world.hold
+  h.down = true; h.p = 0; h.x = x; h.y = y; h.t0 = st.time
+  world.interacted = true
+}
+
+function pressUp(world, st) {
+  const h = world.hold
+  if (!h.down) return
+  h.down = false
+  if (h.p > 0.2) {
+    world.shocks.push({ x: h.x, y: h.y, t0: st.time, str: h.p })
+    world.shake = Math.max(world.shake, h.p * 1.4)
+  } else {
+    world.shocks.push({ x: h.x, y: h.y, t0: st.time, str: 0.25 })
+  }
+}
+
+function pressCancel(world) {
+  world.hold.down = false
+}
+
+function flowAngle(x, y, t, W, H) {
+  const u = x / W, v = y / H
+  return Math.sin(u * 5.5 + t * 0.07) * 2.1 + Math.cos(v * 4.2 - t * 0.05) * 2.1 + Math.sin((u + v) * 3.4 + t * 0.04) * 1.4
+}
+
+// st: { W, H, time, dt, w[4], mouse{x,y,active}, reduce, scrollDelta }
+function update(world, st) {
+  const { W, H, time, mouse, reduce, scrollDelta = 0 } = st
+  const dt = Math.min(st.dt, 0.033)
+  const h = world.hold
+
+  if (!reduce) {
+    if (h.down) {
+      if (time - h.t0 > 0.08) h.p = Math.min(1, h.p + dt / 1.1)
+    } else {
+      h.p = Math.max(0, h.p - dt / 0.7)
+    }
+  }
+
+  world.P = reduce ? 0 : h.p
+  world.ep = h.down ? { x: h.x, y: h.y } : null
+  world.shake = Math.max(0, world.shake - dt * 2.4)
+  world.shocks = world.shocks.filter((s) => time - s.t0 < 1.6)
+
+  const P = world.P
+  for (const m of world.motes) {
+    if (reduce) continue
+
+    // --- PARALLAX SCROLL DISPLACEMENT ---
+    if (Math.abs(scrollDelta) > 0.01) {
+      const clampedDelta = Math.max(-90, Math.min(90, scrollDelta))
+      const shift = clampedDelta * m.depth * 0.45
+      m.y -= shift
+      m.hy -= shift
+      m.vy -= shift * 1.8
+    }
+
+const fa = flowAngle(m.x, m.y, time, W, H)
+    let ax = Math.cos(fa) * 5, ay = Math.sin(fa) * 5 + (m.hy - m.y) * 0.3 * (1 - P)
+
+    // Screen-wide crushing spiritual pressure
+    if (P > 0.03) {
+      // Violent high-frequency particle shudder
+      ax += (Math.sin(time * 95 + m.ph * 7) * 0.6 + (Math.random() - 0.5) * 0.4) * P * 1200
+      // Heavy downward crushing gravity
+      ay += P * 1600 * m.depth
+    }
+
+
+    // Mouse gentle push
+    if (mouse.active && P < 0.2) {
+      const dx = m.x - mouse.x, dy = m.y - mouse.y, d = Math.hypot(dx, dy)
+      if (d < 120 && d > 1) { const f = 1 - d / 120; ax += (dx / d) * f * 60; ay += (dy / d) * f * 60 }
+    }
+
+    // Shockwaves
+    for (const s of world.shocks) {
+      const age = time - s.t0, r = age * 540
+      const dx = m.x - s.x, dy = m.y - s.y, d = Math.hypot(dx, dy) + 0.001
+      const band = Math.abs(d - r)
+      if (band < 46) {
+        const f = (1 - band / 46) * (1 - age / 1.6) * s.str
+        ax += (dx / d) * f * 1800; ay += (dy / d) * f * 1800 - f * 900
+      }
+    }
+
+    m.vx += ax * dt; m.vy += ay * dt
+    const drag = Math.exp(-(0.5 + P * 1.0) * dt)
+    m.vx *= drag; m.vy *= drag
+    const sp = Math.hypot(m.vx, m.vy)
+    if (sp > 350) { m.vx *= 350 / sp; m.vy *= 350 / sp }
+    m.x += m.vx * dt; m.y += m.vy * dt
+
+    // Screen wrap
+    if (m.y < -40) {
+      m.y += H + 80
+      m.hy += H + 80
+    } else if (m.y > H + 40) {
+      m.y -= H + 80
+      m.hy -= H + 80
+    }
+
+    if (m.x < -20) m.x += W + 40; else if (m.x > W + 20) m.x -= W + 40
+  }
+}
+
+// SCREEN-WIDE BLEACH REIATSU ATMOSPHERIC DISTORTION
+function drawReiatsuSurge(ctx, P, time, W, H) {
+  if (P <= 0.02) return
+
+  ctx.save()
+
+  // 1. Subtle ambient pressure dimming
+  ctx.fillStyle = `rgba(3, 1, 6, ${0.35 * P})`
+  ctx.fillRect(0, 0, W, H)
+
+  // 2. Ghostly air-refraction bands (barely visible heat mirage)
+  const lineCount = Math.floor(W < 768 ? 40 : 70)
+
+  for (let i = 0; i < lineCount; i++) {
+    const seed = (i * 123457 + 76543) % 1000000
+    const normX = (i / lineCount) + ((seed % 100) / 100 - 0.5) * (1.5 / lineCount)
+    
+    // High-frequency air shimmer / vibration
+    const jitter = Math.sin(time * 60 + i * 13.7) * (1.2 + 3 * P)
+    const x = normX * W + jitter
+
+    const speed = 180 + (seed % 220)
+    const yOffset = (time * speed + (seed % 1000)) % (H * 1.3) - (H * 0.15)
+    const strokeH = H * (0.5 + ((seed >> 3) % 100) / 100 * 0.5)
+
+    // Ultra-low, ghost-level opacity
+    const shimmer = 0.5 + 0.5 * Math.sin(time * 20 + i * 6.2)
+    const alpha = P * shimmer * 0.07 // Extremely faint
+
+    ctx.beginPath()
+    ctx.moveTo(x, yOffset)
+    ctx.lineTo(x + Math.sin(time * 12 + i) * 2, yOffset + strokeH)
+
+    if (i % 3 === 0) {
+      // Soft wide shadow wave (refraction distortion)
+      ctx.lineWidth = 18 + (seed % 24)
+      ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 1.8})`
+    } else if (i % 3 === 1) {
+      // Very faint ethereal violet vapor
+      ctx.lineWidth = 8 + (seed % 10)
+      ctx.strokeStyle = `rgba(147, 51, 234, ${alpha * 1.2})`
+    } else {
+      // Subtle atmospheric frequency seam
+      ctx.lineWidth = 2 + (seed % 3)
+      ctx.strokeStyle = `rgba(192, 132, 252, ${alpha * 1.4})`
+    }
+
+    ctx.stroke()
+  }
+
+  // 3. Faint rolling atmospheric gravity wave
+  const waveY = (time * 70) % H
+  const wg = ctx.createLinearGradient(0, waveY - 40, 0, waveY + 40)
+  wg.addColorStop(0, 'rgba(107, 33, 168, 0)')
+  wg.addColorStop(0.5, `rgba(107, 33, 168, ${0.03 * P})`)
+  wg.addColorStop(1, 'rgba(107, 33, 168, 0)')
+  ctx.fillStyle = wg
+  ctx.fillRect(0, waveY - 40, W, 80)
+
+  ctx.restore()
+}
+
+function drawFrame(ctx, st, world) {
+  const { W, H, time, w, mouse } = st
+  const P = world.P, mn = Math.min(W, H), maxDim = Math.max(W, H)
+  ctx.globalAlpha = 1
+  ctx.fillStyle = BG
+  ctx.fillRect(0, 0, W, H)
+
+  ctx.save()
+
+  // Violent screen shake while pressing
+  let shX = 0, shY = 0
+  if (world.hold.down && world.hold.p > 0.03) {
+    const heavyP = Math.pow(world.hold.p, 1.8) * 8.5
+    shX += (Math.sin(time * 86) * 0.65 + Math.sin(time * 144) * 0.35) * heavyP
+    shY += (Math.cos(time * 94) * 0.65 + Math.cos(time * 162) * 0.35) * heavyP
+  }
+  if (world.shake > 0.01) {
+    const relShake = world.shake * 7.0
+    shX += Math.sin(time * 65) * relShake
+    shY += Math.cos(time * 57) * relShake
+  }
+  if (shX !== 0 || shY !== 0) ctx.translate(shX, shY)
+
+  // Ambient purple background glow
+  ctx.globalCompositeOperation = 'lighter'
+  for (let b = 0; b < 3; b++) {
+    let x = 0, y = 0, r = 0, inten = 0
+    for (let k = 0; k < 4; k++) { const c = STAGE_BLOBS[k][b]; x += w[k] * c[0]; y += w[k] * c[1]; r += w[k] * c[2]; inten += w[k] * c[3] }
+    x += Math.sin(time * 0.11 + b * 1.7) * 0.03; y += Math.cos(time * 0.09 + b * 2.3) * 0.03
+    inten *= (0.85 + 0.15 * Math.sin(time * 0.35 + b)) * (1 - 0.6 * P)
+    const g = ctx.createRadialGradient(x * W, y * H, 0, x * W, y * H, r * maxDim)
+    g.addColorStop(0, `rgba(${BLOB_COLORS[b]},${inten * 0.7})`)
+    g.addColorStop(0.45, `rgba(${BLOB_COLORS[b]},${inten * 0.25})`)
+    g.addColorStop(1, `rgba(${BLOB_COLORS[b]},0)`)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, W, H)
+  }
+
+  // Mouse hover glow
+  if (mouse.active && P < 0.2) {
+    const mg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 110)
+    mg.addColorStop(0, 'rgba(126,34,206,0.08)')
+    mg.addColorStop(1, 'rgba(126,34,206,0)')
+    ctx.fillStyle = mg
+    ctx.fillRect(mouse.x - 110, mouse.y - 110, 220, 220)
+  }
+
+  ctx.globalCompositeOperation = 'source-over'
+
+  // --- BLEACH REIATSU PRESSURE SURGE (LONG PRESS) ---
+// Full-screen atmospheric Reiatsu shimmer
+  if (world.hold.down && P > 0.02) {
+    drawReiatsuSurge(ctx, P, time, W, H)
+  }
+
+  // Motes with depth priority & velocity scroll streaks
+  const scrollSpeed = st.scrollDelta || 0
+  for (const m of world.motes) {
+    const depthScale = 0.55 + 0.45 * m.depth
+    const a = (0.35 + 0.45 * (0.5 + 0.5 * Math.sin(time * m.tw + m.ph))) * (1 - 0.3 * P) * depthScale
+
+    const stretch = Math.min(22, Math.abs(scrollSpeed) * m.depth * 0.8)
+    const ry = m.size * 1.3 + stretch
+    const rx = Math.max(0.6, m.size * 1.3 - stretch * 0.1)
+
+    // Outer violet aura
+    ctx.fillStyle = `rgba(107,33,168,${a * 0.22})`
+    ctx.beginPath()
+    ctx.ellipse(m.x, m.y, rx * 2.5, ry * 2.5, 0, 0, TAU)
+    ctx.fill()
+
+    // Dark purple outline
+    ctx.strokeStyle = `rgba(147,51,234,${a * 0.95})`
+    ctx.lineWidth = 0.8 + 0.6 * m.depth
+    ctx.beginPath()
+    ctx.ellipse(m.x, m.y, rx, ry, 0, 0, TAU)
+    ctx.stroke()
+
+    // Core
+    ctx.fillStyle = `rgba(6,2,14,${a * 0.98})`
+    ctx.beginPath()
+    ctx.ellipse(m.x, m.y, rx * 0.9, ry * 0.9, 0, 0, TAU)
+    ctx.fill()
+  }
+
+
+
+  // Initial Hint
+  if (!world.interacted && time > 2.5 && time < world.hintUntil && w[0] > 0.5) {
+    const f = smooth(2.5, 4, time) * (1 - smooth(world.hintUntil - 2, world.hintUntil, time)) * w[0]
+    const hx = W * 0.72, hy = H * 0.62
+    ctx.font = 'italic 15px "Playfair Display", Georgia, serif'
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillStyle = `rgba(168,85,247,${0.65 * f})`
+    ctx.fillText('press and hold', hx, hy)
+  }
+
+  ctx.restore()
+
+  // Radial vignette edge
+  const vg = ctx.createRadialGradient(W / 2, H / 2, mn * (0.35 - 0.22 * P), W / 2, H / 2, Math.hypot(W, H) / 2)
+  vg.addColorStop(0, 'rgba(0,0,0,0)')
+  vg.addColorStop(1, `rgba(0,0,0,${0.65 + 0.3 * P})`)
+  ctx.fillStyle = vg
+  ctx.fillRect(0, 0, W, H)
+}
+// </SCENE_LOGIC>
+
+export default function EndlessBoxesBackground({ sectionIds = ['about', 'work', 'contact'] }) {
+  const canvasRef = useRef(null)
 
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const reduce =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    // 1. Scene & Camera Setup
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#040209')
-    scene.fog = new THREE.FogExp2('#040209', 0.018)
+    let raf, W = 0, H = 0, world = null, anchors = [0, 1, 2, 3]
+    let s = 0, time = 0, last = performance.now()
+    let lastScrollY = window.scrollY
+    const mouse = { x: -999, y: -999, active: false }
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100)
-    camera.position.z = 18
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.8
-    container.appendChild(renderer.domElement)
-
-    // 2. High-Contrast Studio Environment Map
-    const envCanvas = document.createElement('canvas')
-    envCanvas.width = 1024
-    envCanvas.height = 512
-    const envCtx = envCanvas.getContext('2d')
-
-    const envGrad = envCtx.createLinearGradient(0, 0, 0, 512)
-    envGrad.addColorStop(0, '#020005')
-    envGrad.addColorStop(0.5, '#1e0836')
-    envGrad.addColorStop(1, '#020005')
-    envCtx.fillStyle = envGrad
-    envCtx.fillRect(0, 0, 1024, 512)
-
-    // Cool white/cyan softbox light
-    const light1 = envCtx.createRadialGradient(240, 180, 0, 240, 180, 170)
-    light1.addColorStop(0, 'rgba(255, 255, 255, 1)')
-    light1.addColorStop(0.35, 'rgba(56, 189, 248, 0.85)')
-    light1.addColorStop(1, 'rgba(0, 0, 0, 0)')
-    envCtx.fillStyle = light1
-    envCtx.fillRect(0, 0, 512, 380)
-
-    // Royal amethyst/violet rim light
-    const light2 = envCtx.createRadialGradient(780, 320, 0, 780, 320, 230)
-    light2.addColorStop(0, 'rgba(232, 121, 249, 1)')
-    light2.addColorStop(0.45, 'rgba(147, 51, 234, 0.85)')
-    light2.addColorStop(1, 'rgba(0, 0, 0, 0)')
-    envCtx.fillStyle = light2
-    envCtx.fillRect(512, 0, 512, 512)
-
-    const envTexture = new THREE.CanvasTexture(envCanvas)
-    envTexture.mapping = THREE.EquirectangularReflectionMapping
-    scene.environment = envTexture
-
-    // 3. Directional Lights
-    const dirLight1 = new THREE.DirectionalLight('#ffffff', 3.2)
-    dirLight1.position.set(12, 14, 8)
-    scene.add(dirLight1)
-
-    const dirLight2 = new THREE.DirectionalLight('#a855f7', 4.5)
-    dirLight2.position.set(-14, -10, 6)
-    scene.add(dirLight2)
-
-    // 4. Physical Mirror/Glass Sheet Material
-    const mirrorMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1c0d2e'),
-      metalness: 0.92,
-      roughness: 0.04,
-      envMapIntensity: 2.6,
-      transparent: true,
-      opacity: 0.9,
-      side: THREE.DoubleSide,
-    })
-
-    const edgeMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color('#f5f3ff'),
-      transparent: true,
-      opacity: 0.45,
-    })
-
-    // 5. Shattered Glass Shapes
-    function createGlassFractureShape() {
-      const shape = new THREE.Shape()
-      const type = Math.random()
-
-      if (type < 0.35) {
-        const len = 1.8 + Math.random() * 2.2
-        const w = 0.22 + Math.random() * 0.25
-        shape.moveTo(0, -len * 0.55)
-        shape.lineTo(w * 0.7, (Math.random() - 0.5) * len * 0.15)
-        shape.lineTo((Math.random() - 0.5) * w * 0.3, len * 0.45)
-        shape.lineTo(-w * 0.6, (Math.random() - 0.5) * len * 0.1)
-      } else if (type < 0.68) {
-        const w = 0.9 + Math.random() * 0.9
-        const h = 1.2 + Math.random() * 1.2
-        shape.moveTo(-w * 0.5, -h * 0.5)
-        shape.lineTo(w * 0.45, -h * 0.25 + (Math.random() - 0.5) * 0.2)
-        shape.lineTo((Math.random() - 0.5) * 0.2, h * 0.5)
-        shape.lineTo(-w * 0.35, h * 0.1)
-      } else {
-        const w1 = 0.9 + Math.random() * 0.7
-        const w2 = 0.35 + Math.random() * 0.5
-        const h = 0.7 + Math.random() * 0.6
-        shape.moveTo(-w1 * 0.5, -h * 0.5)
-        shape.lineTo(w1 * 0.5, -h * 0.5)
-        shape.lineTo(w2 * 0.5 + (Math.random() - 0.5) * 0.2, h * 0.5)
-        shape.lineTo(-w2 * 0.5, h * 0.5)
-      }
-      return shape
-    }
-
-    const extrudeSettings = {
-      depth: 0.04,
-      bevelEnabled: true,
-      bevelThickness: 0.02,
-      bevelSize: 0.02,
-      bevelSegments: 1,
-    }
-
-    // 6. Spawn Glass Shards
-    const isMobile = window.innerWidth < 768
-    const SHARD_COUNT = isMobile ? 35 : 75
-    const shards = []
-
-    for (let i = 0; i < SHARD_COUNT; i++) {
-      const geom = new THREE.ExtrudeGeometry(createGlassFractureShape(), extrudeSettings)
-      const mesh = new THREE.Mesh(geom, mirrorMaterial)
-
-      const edgesGeom = new THREE.EdgesGeometry(geom, 25)
-      const edgeLine = new THREE.LineSegments(edgesGeom, edgeMaterial)
-      mesh.add(edgeLine)
-
-      const sizeRoll = Math.random()
-      let scale = 0.6 + Math.random() * 0.5
-      if (sizeRoll > 0.85) scale = 1.4 + Math.random() * 0.8
-      if (sizeRoll < 0.25) scale = 0.35 + Math.random() * 0.25
-
-      mesh.scale.set(scale, scale, 1)
-
-      const z = -6 + Math.random() * 16
-      const spreadX = (z + 16) * 0.65
-      const spreadY = (z + 16) * 0.4
-
-      mesh.position.set(
-        (Math.random() - 0.5) * spreadX * 2,
-        (Math.random() - 0.5) * spreadY * 2,
-        z
-      )
-
-      mesh.rotation.set(
-        Math.random() * Math.PI * 2,
-        Math.random() * Math.PI * 2,
-        Math.random() * Math.PI * 2
-      )
-
-      scene.add(mesh)
-
-      // Slow, peaceful zero-gravity drift values
-      shards.push({
-        mesh,
-        vx: (Math.random() - 0.5) * 0.0004,
-        vy: (Math.random() - 0.5) * 0.0004,
-        vz: (Math.random() - 0.5) * 0.0002,
-        vRotX: (Math.random() - 0.5) * 0.0006,
-        vRotY: (Math.random() - 0.5) * 0.0008,
-        vRotZ: (Math.random() - 0.5) * 0.0004,
-        boundsX: spreadX + 2,
-        boundsY: spreadY + 2,
+    const measure = () => {
+      const secs = [...document.querySelectorAll('section')]
+      const byId = (id) => document.getElementById(id)
+      const hero = document.querySelector('.hero') || secs[0]
+      const about = byId(sectionIds[0]) || secs[1]
+      const contact = byId(sectionIds[2]) || secs[secs.length - 1]
+      let work = byId(sectionIds[1]) || byId('projects')
+      if (!work) work = secs[Math.floor((secs.indexOf(about) + secs.indexOf(contact)) / 2)]
+      const ys = [hero, about, work, contact].map((el) => {
+        if (!el) return NaN
+        const r = el.getBoundingClientRect()
+        return r.top + window.scrollY + r.height / 2
       })
+      if (ys.every((y, i) => isFinite(y) && (i === 0 || y > ys[i - 1] + 40))) anchors = ys
+      else {
+        const span = Math.max(0, document.documentElement.scrollHeight - H)
+        anchors = [0, 1, 2, 3].map((k) => H / 2 + (span * k) / 3)
+      }
     }
 
-    // 7. Floating Dust Motes
-    const dustCount = isMobile ? 40 : 90
-    const dustGeom = new THREE.BufferGeometry()
-    const dustPositions = new Float32Array(dustCount * 3)
-    for (let i = 0; i < dustCount * 3; i += 3) {
-      dustPositions[i] = (Math.random() - 0.5) * 28
-      dustPositions[i + 1] = (Math.random() - 0.5) * 20
-      dustPositions[i + 2] = (Math.random() - 0.5) * 18
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      W = window.innerWidth; H = window.innerHeight
+      canvas.width = W * dpr; canvas.height = H * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      world = buildWorld(W, H, W < 768 ? 70 : 120)
+      lastScrollY = window.scrollY
+      measure()
     }
-    dustGeom.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3))
-    const dustMat = new THREE.PointsMaterial({
-      color: '#e9d5ff',
-      size: 0.13,
-      transparent: true,
-      opacity: 0.65,
-      blending: THREE.AdditiveBlending,
-    })
-    const dust = new THREE.Points(dustGeom, dustMat)
-    scene.add(dust)
 
-    // 8. Calm Mouse Parallax
-    const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 }
-    const onMouseMove = (e) => {
-      mouse.targetX = (e.clientX / window.innerWidth - 0.5) * 0.6
-      mouse.targetY = -(e.clientY / window.innerHeight - 0.5) * 0.6
+    const stageFromScroll = () => {
+      const focus = window.scrollY + H / 2
+      if (focus <= anchors[0]) return 0
+      if (focus >= anchors[3]) return 3
+      let j = 0
+      while (j < 2 && focus >= anchors[j + 1]) j++
+      return j + smooth(0.2, 0.8, (focus - anchors[j]) / (anchors[j + 1] - anchors[j]))
     }
-    window.addEventListener('mousemove', onMouseMove)
 
-    const onResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight
-      camera.updateProjectionMatrix()
-      renderer.setSize(window.innerWidth, window.innerHeight)
+    const onMove = (e) => {
+      mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = e.pointerType !== 'touch'
+      if (world && world.hold.down && Math.hypot(e.clientX - world.hold.x, e.clientY - world.hold.y) > 14) pressCancel(world)
     }
-    window.addEventListener('resize', onResize)
+    const onDown = (e) => {
+      if (reduce || !world || e.button > 0) return
+      pressDown(world, { W, H, time }, e.clientX, e.clientY)
+    }
+    const onUp = () => { if (world) pressUp(world, { W, H, time }) }
+    const onCancel = () => { if (world) pressCancel(world) }
+    const onScroll = () => { if (world && world.hold.down) pressCancel(world) }
+    const onLeave = () => { mouse.active = false }
 
-    // 9. Animation Loop
-    let reqId
-    const animate = () => {
-      reqId = requestAnimationFrame(animate)
+    const render = (now) => {
+      raf = requestAnimationFrame(render)
+      const dt = Math.min((now - last) / 1000, 0.1)
+      last = now
+      if (!reduce) time += dt
 
-      mouse.x += (mouse.targetX - mouse.x) * 0.04
-      mouse.y += (mouse.targetY - mouse.y) * 0.04
-      camera.position.x = mouse.x * 0.8
-      camera.position.y = mouse.y * 0.6
-      camera.lookAt(0, 0, 0)
+      const currentScrollY = window.scrollY
+      const scrollDelta = currentScrollY - lastScrollY
+      lastScrollY = currentScrollY
 
-      for (let i = 0; i < shards.length; i++) {
-        const s = shards[i]
-        const m = s.mesh
+      const target = stageFromScroll()
+      s = reduce ? target : s + (target - s) * Math.min(1, dt * 3.5)
 
-        m.rotation.x += s.vRotX
-        m.rotation.y += s.vRotY
-        m.rotation.z += s.vRotZ
-
-        m.position.x += s.vx
-        m.position.y += s.vy
-        m.position.z += s.vz
-
-        if (m.position.x > s.boundsX) m.position.x = -s.boundsX
-        if (m.position.x < -s.boundsX) m.position.x = s.boundsX
-        if (m.position.y > s.boundsY) m.position.y = -s.boundsY
-        if (m.position.y < -s.boundsY) m.position.y = s.boundsY
+      const st = {
+        W, H, time, dt,
+        w: stageWeights(s),
+        mouse: reduce ? { ...mouse, active: false } : mouse,
+        reduce,
+        scrollDelta,
       }
 
-      dust.rotation.y += 0.0004
-      renderer.render(scene, camera)
+      update(world, st)
+      drawFrame(ctx, st, world)
     }
-    animate()
 
-    // Cleanup
+    resize()
+    s = stageFromScroll()
+    window.addEventListener('resize', resize)
+    window.addEventListener('pointermove', onMove, { passive: true })
+    window.addEventListener('pointerdown', onDown, { passive: true })
+    window.addEventListener('pointerup', onUp, { passive: true })
+    window.addEventListener('pointercancel', onCancel, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('pointerleave', onLeave)
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+    ro && ro.observe(document.body)
+    raf = requestAnimationFrame(render)
+
     return () => {
-      cancelAnimationFrame(reqId)
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('resize', onResize)
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement)
-      }
-      scene.clear()
-      envTexture.dispose()
-      mirrorMaterial.dispose()
-      edgeMaterial.dispose()
-      renderer.dispose()
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onCancel)
+      window.removeEventListener('scroll', onScroll)
+      document.removeEventListener('pointerleave', onLeave)
+      ro && ro.disconnect()
     }
-  }, [])
+  }, [sectionIds.join('|')])
 
   return (
-    <div
-      ref={containerRef}
+    <canvas
+      ref={canvasRef}
       aria-hidden="true"
       style={{
         position: 'fixed',
-        inset: 0,
-        zIndex: 0,
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -1,
         pointerEvents: 'none',
-        overflow: 'hidden',
-        backgroundColor: '#040209',
+        display: 'block',
+        backgroundColor: '#06050a',
       }}
     />
   )

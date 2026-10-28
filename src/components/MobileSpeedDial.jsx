@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 const items = [
+  { id: 'home', label: 'Home', icon: 'ti-home' },
   { id: 'about', label: 'About', icon: 'ti-user' },
   { id: 'work', label: 'Work', icon: 'ti-briefcase' },
   { id: 'contact', label: 'Contact', icon: 'ti-mail' },

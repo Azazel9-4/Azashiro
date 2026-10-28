@@ -26,7 +26,7 @@ const s = {
   index: {
     fontFamily: 'var(--serif)',
     fontSize: '64px',
-    color: 'rgba(255,255,255,0.04)',
+    color: 'rgba(168, 85, 247)',
     lineHeight: 1,
     userSelect: 'none',
   },
