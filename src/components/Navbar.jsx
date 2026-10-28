@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import useMediaQuery from '../hooks/useMediaQuery'
 import MobileSpeedDial from './MobileSpeedDial'
 
-const navLinks = [['About', 'about'], ['Work', 'work'], ['Contact', 'contact']]
+const navLinks = [['Home', 'home'], ['About', 'about'], ['Work', 'work'], ['Contact', 'contact']]
 
 const s = {
   nav: (scrolled) => ({
@@ -87,7 +87,7 @@ menuBtn: (open) => ({
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [active, setActive] = useState('about')
+  const [active, setActive] = useState('home')
   const isMobile = useMediaQuery('(max-width: 720px)')
   const ticking = useRef(false)
   const menuBtnRef = useRef(null)

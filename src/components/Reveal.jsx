@@ -19,7 +19,7 @@ export default function Reveal({
   threshold = 0.12,
   style = {},
 }) {
-  const { ref, visible } = useScrollReveal(threshold, delay)
+  const { ref, visible } = useScrollReveal(threshold)
 
   const translate = {
     up:    `translateY(${distance}px)`,
@@ -34,7 +34,7 @@ export default function Reveal({
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translate(0,0)' : translate,
-        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
+        transition: `opacity 0.95s ease ${visible ? delay : 0}ms, transform 0.65s ease ${visible ? delay : 0}ms`,
         ...style,
       }}
     >

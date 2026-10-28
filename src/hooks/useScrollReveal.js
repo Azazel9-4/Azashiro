@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 /**
  * useScrollReveal
  * Returns a ref to attach to any element + a boolean `visible`.
+ * `visible` flips true when the element enters the viewport and false
+ * when it leaves, so the animation replays in both scroll directions.
  * @param {number} threshold - 0 to 1, how much of element must be visible (default 0.15)
- * @param {number} delay     - extra delay in ms before triggering (default 0)
  */
-export default function useScrollReveal(threshold = 0.15, delay = 0) {
+export default function useScrollReveal(threshold = 0.15) {
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
 
@@ -15,22 +16,13 @@ export default function useScrollReveal(threshold = 0.15, delay = 0) {
     if (!el) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          if (delay) {
-            setTimeout(() => setVisible(true), delay)
-          } else {
-            setVisible(true)
-          }
-          observer.unobserve(el) // only animate once
-        }
-      },
-      { threshold }
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold, rootMargin: '0px 0px -8% 0px' }
     )
 
     observer.observe(el)
     return () => observer.disconnect()
-  }, [threshold, delay])
+  }, [threshold])
 
   return { ref, visible }
 }

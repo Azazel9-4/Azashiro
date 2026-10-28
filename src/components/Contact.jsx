@@ -27,7 +27,7 @@ const s = {
   index: {
     fontFamily: 'var(--serif)',
     fontSize: '64px',
-    color: 'rgba(255,255,255,0.04)',
+    color: 'rgba(168, 85, 247)',
     lineHeight: 1,
     userSelect: 'none',
     marginBottom: '16px',
@@ -124,11 +124,12 @@ const s = {
     transition: 'all 0.2s ease',
   }),
 
-  links: {
+  links: (stacked) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-  },
+    paddingTop: stacked ? '0' : '120px',
+  }),
   link: (isMobile) => ({
     display: 'flex',
     alignItems: 'center',
@@ -208,7 +209,7 @@ export default function Contact() {
     { icon: 'ti-brand-linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/rommel-glenn-austria-2b88ab423' },
     { icon: 'ti-brand-github', label: 'GitHub', href: 'https://github.com/Azazel9-4' },
     { icon: 'ti-brand-instagram', label: 'Instagram', href: 'https://www.instagram.com/azaashirooo/' },
-    { icon: 'ti-file-text', label: 'Resume', href: '/Resume-Glenn.pdf' },
+    /*{ icon: 'ti-file-text', label: 'Resume', href: '/Resume-Glenn.pdf' },*/
   ]
 
   return (
@@ -226,10 +227,6 @@ export default function Contact() {
             If you have an interesting problem, I would love to hear about it.
           </p>
 
-          <div style={s.statusBadge}>
-            <span style={s.statusDot} />
-            <span>Available for work • PH {time && `(${time} PHT)`}</span>
-          </div>
 
           {/* Quick Inquiry Expectations Card */}
           <div style={s.briefCard}>
@@ -243,7 +240,7 @@ export default function Contact() {
         </div>
       </Reveal>
 
-      <div style={s.links}>
+      <div style={s.links(stacked)}>
         <p style={{ ...s.label, marginBottom: '10px' }}>What are you looking to build?</p>
         <div style={s.tagsContainer}>
           {tags.map((tag) => (
