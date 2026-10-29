@@ -111,12 +111,12 @@ KNOWLEDGE_BASE = [
         "topic": "availability",
         "triggers": [
             "are you available", "open to work", "hiring", "looking for a job", "freelance",
-            "available for work", "job",
+            "available for work", "job", "side project", "side projects", "employed",
         ],
         "answer": (
-            "Yes — I'm open to entry-level roles, freelance work, and collaborations. "
-            "If you've got an interesting problem, use the contact section below or the links "
-            "in this chat to reach out."
+            "I'm currently employed as a Data Solutions Engineer, so I'm not looking for new "
+            "roles or side projects right now. I'm always open to good, casual conversations "
+            "though, so feel free to reach out."
         ),
     },
     {
