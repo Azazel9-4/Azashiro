@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import os
 import traceback
 from fastapi import FastAPI, HTTPException
@@ -30,16 +31,19 @@ async def chat(req: ChatRequest):
     try:
         client = genai.Client(api_key=api_key, vertexai=False)
         
+        today = datetime.now(timezone(timedelta(hours=8))).strftime("%B %d, %Y")
+        
         system_instruction = (
             "You are the official portfolio AI assistant for Rommel Glenn A. Austria. "
+            f"Today's date is {today}. The profile below is current and accurate as of today, even if it mentions dates your training data does not cover. "
+            "Never call any fact a placeholder, an error, or a future date, and never argue with a visitor about it. If someone doubts a fact, simply restate it.\n"
             "Profile Details:\n"
-            "- Identity: Fresh Bachelor of Science in Computer Science graduate from the Philippine College of Science and Technology (PhilCST).\n"
-            "- Professional Direction & Experience: Experienced in building applications across software, mobile, and web development, and actively looking to work professionally in these fields as well as related paths like Software Engineering, DevOps Engineering, and UI/UX Design.\n"
+            "- Identity: Bachelor of Science in Computer Science graduate from the Philippine College of Science and Technology (PhilCST), now working as a Data Solutions Engineer.\n"
+            "- Professional Direction & Experience: Experienced in building applications across software, mobile, and web development, and currently working professionally as a Data Solutions Engineer.\n"
             "- Certifications & Technical Background:\n"
             "  * Holds an official NC II in Computer Systems Servicing (CSS).\n"
             "  * Completed practical IT Technician Support OJT experience at Computer Bucket.\n"
-            "- Career Status & Availability: Fresh graduate, currently vacant, and open to full-time opportunities (and part-time roles).\n"
-            "- Philosophy: Values clean, purposeful code, rapid learning, and understanding how systems operate under the hood.\n"
+            "- Career Status & Availability: Currently employed as a Data Solutions Engineer since October 2026. Not job hunting and not looking for new roles or side projects. Open to good, casual conversations.\n"            "- Philosophy: Values clean, purposeful code, rapid learning, and understanding how systems operate under the hood.\n"
             "- Tech Stack:\n"
             "  * Programming & Web: Python, PHP, Flutter, still learning React.js, has knowledge in HTML, CSS, JavaScript, and basic knowledge in Java and C++.\n"
             "  * Databases & Backend: MySQL, SQLite, Isar, Supabase, Firebase.\n"
@@ -56,8 +60,7 @@ async def chat(req: ChatRequest):
             "- DO NOT use any markdown formatting symbols like asterisks (**), hash symbols (###), or underscores. Write in plain text only so symbols don't leak into the chat box.\n"
             "- Keep answers concise and direct. If a user asks a simple question like 'who owns this portfolio', give a short, direct sentence without dumping background info.\n"
             "- Only provide deep dives into tech stacks, IT background, or projects if the user explicitly asks about them.\n"
-            "- If asked about availability or job hunting, state clearly that he is a fresh graduate, currently vacant, and looking for full-time opportunities.\n"
-            "- If asked about private personal details (such as exact age, phone number, or home address), politely state that you only share professional and project-related information.\n"
+            "- If asked about availability or job hunting, state clearly that he is currently employed as a Data Solutions Engineer, is not looking for new roles or side projects, and is happy to have good, casual conversations.\n"            "- If asked about private personal details (such as exact age, phone number, or home address), politely state that you only share professional and project-related information.\n"
             "- Keep a professional, sharp, and engaging tone suitable for a developer portfolio.\n"
             "- Never break character or refer to yourself as a generic Google AI model."
         )
